@@ -35,8 +35,12 @@ def build_executable():
         "--onedir",                     # Use directory instead of single file (more reliable)
         "--windowed",                   # No console window
         "--name", "VirtualPet",         # Executable name
-        "--icon=sprites/idle/final-10.png",  # Icon from your sprites
+        # "--icon=sprites/idle/final-10.png",  # Icon from your sprites (commented out due to format issues)
         "--add-data", "sprites;sprites",     # Include sprite folder
+        "--add-data", "sprites/idle;sprites/idle",  # Ensure idle sprites are included
+        "--add-data", "sprites/walk;sprites/walk",  # Ensure walk sprites are included
+        "--add-data", "sprites/run;sprites/run",    # Ensure run sprites are included
+        "--add-data", "sprites/jump;sprites/jump",  # Ensure jump sprites are included
         "--hidden-import", "PyQt5.QtCore",   # Ensure PyQt5 modules are included
         "--hidden-import", "PyQt5.QtGui",
         "--hidden-import", "PyQt5.QtWidgets",

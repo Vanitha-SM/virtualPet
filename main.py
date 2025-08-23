@@ -76,6 +76,8 @@ class VirtualPet(QWidget):
     def load_sprites(self):
         """Load all sprite animations from the sprites directory"""
         sprite_dir = "sprites"
+        print(f"Looking for sprites in: {os.path.abspath(sprite_dir)}")
+        
         if not os.path.exists(sprite_dir):
             print(f"Sprite directory {sprite_dir} not found!")
             return
