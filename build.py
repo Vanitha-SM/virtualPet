@@ -29,10 +29,10 @@ def build_executable():
     """Build the executable using PyInstaller"""
     print("Building Virtual Pet executable...")
     
-    # PyInstaller command with better compatibility
+    # PyInstaller command with more robust PyQt5 handling
     cmd = [
         "pyinstaller",
-        "--onefile",                    # Single executable file
+        "--onedir",                     # Use directory instead of single file (more reliable)
         "--windowed",                   # No console window
         "--name", "VirtualPet",         # Executable name
         "--icon=sprites/idle/final-10.png",  # Icon from your sprites
@@ -41,10 +41,15 @@ def build_executable():
         "--hidden-import", "PyQt5.QtGui",
         "--hidden-import", "PyQt5.QtWidgets",
         "--hidden-import", "PyQt5.sip",      # Additional PyQt5 dependency
+        "--hidden-import", "PyQt5.QtPrintSupport",  # Additional Qt modules
+        "--hidden-import", "PyQt5.QtSvg",
         "--collect-all", "PyQt5",            # Collect ALL PyQt5 modules
         "--collect-all", "PyQt5.QtCore",
         "--collect-all", "PyQt5.QtGui", 
         "--collect-all", "PyQt5.QtWidgets",
+        "--exclude-module", "matplotlib",     # Exclude unnecessary modules
+        "--exclude-module", "numpy",
+        "--exclude-module", "PIL",
         "--clean",                      # Clean build cache
         "main.py"
     ]
