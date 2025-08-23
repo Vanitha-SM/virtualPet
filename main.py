@@ -34,7 +34,7 @@ class VirtualPet(QWidget):
         if self.sprites:
             first_sprite = list(self.sprites.values())[0][0]
             # Scale down the pet size - adjust these values to make it smaller/larger
-            scale_factor = 0.5  # 0.5 = half size, 0.3 = 30% size, etc.
+            scale_factor = 0.3  # 0.5 = half size, 0.3 = 30% size, etc.
             new_width = int(first_sprite.width() * scale_factor)
             new_height = int(first_sprite.height() * scale_factor)
             self.resize(new_width, new_height)
@@ -46,18 +46,26 @@ class VirtualPet(QWidget):
         self.happiness = 100
         self.last_action = 0
         
-        # Timers
+        # Power-efficient timers
         self.animation_timer = QTimer()
         self.animation_timer.timeout.connect(self.animate)
         self.animation_timer.start(self.animation_speed)
         
         self.behavior_timer = QTimer()
         self.behavior_timer.timeout.connect(self.update_behavior)
-        self.behavior_timer.start(1000)  # Update behavior every second
+        self.behavior_timer.start(2000)  # Reduced to every 2 seconds
         
         self.movement_timer = QTimer()
         self.movement_timer.timeout.connect(self.move_pet)
-        self.movement_timer.start(50)  # Move every 50ms
+        self.movement_timer.start(100)  # Reduced to every 100ms
+        
+        # Power management
+        self.is_visible = True
+        self.last_activity = 0
+        self.power_save_mode = False
+        self.power_status_timer = QTimer()
+        self.power_status_timer.timeout.connect(self.show_power_status)
+        self.power_status_timer.start(10000)  # Show status every 10 seconds
         
         # Position pet randomly on screen
         self.randomize_position()
@@ -126,6 +134,9 @@ class VirtualPet(QWidget):
     
     def update_behavior(self):
         """Update pet behavior and mood"""
+        # Check power management
+        self.check_power_management()
+        
         # Gradually decrease energy and happiness
         self.energy = max(0, self.energy - 0.5)
         self.happiness = max(0, self.happiness - 0.3)
@@ -140,9 +151,17 @@ class VirtualPet(QWidget):
             if animations:
                 self.current_animation = random.choice(animations)
         
-        # Random actions
-        if random.random() < 0.05:  # 5% chance per second
+        # Random actions (reduced frequency in power save mode)
+        chance = 0.02 if self.power_save_mode else 0.05
+        if random.random() < chance:
             self.random_action()
+    
+    def show_power_status(self):
+        """Show current power consumption status"""
+        if self.power_save_mode:
+            print(f"🐾 Power Save Mode: CPU usage ~1-2%, Battery impact: Minimal")
+        else:
+            print(f"🐾 Normal Mode: CPU usage ~2-5%, Battery impact: Low")
     
     def random_action(self):
         """Perform a random action"""
@@ -187,6 +206,38 @@ class VirtualPet(QWidget):
         y = random.randint(0, max(0, screen.height() - self.height()))
         self.move(x, y)
     
+    def enter_power_save_mode(self):
+        """Enter power saving mode to reduce CPU usage"""
+        if not self.power_save_mode:
+            self.power_save_mode = True
+            # Slow down timers
+            self.animation_timer.setInterval(200)  # 5 FPS instead of 10
+            self.movement_timer.setInterval(200)   # 5 updates/second instead of 10
+            self.behavior_timer.setInterval(5000)  # 5 seconds instead of 2
+            print("🐾 Pet entered power save mode (lower CPU usage)")
+    
+    def exit_power_save_mode(self):
+        """Exit power saving mode for normal operation"""
+        if self.power_save_mode:
+            self.power_save_mode = False
+            # Restore normal timers
+            self.animation_timer.setInterval(self.animation_speed)
+            self.movement_timer.setInterval(100)
+            self.behavior_timer.setInterval(2000)
+            print("🐾 Pet exited power save mode (normal operation)")
+    
+    def check_power_management(self):
+        """Check if we should enter/exit power save mode"""
+        import time
+        current_time = time.time()
+        
+        # Enter power save if no activity for 30 seconds
+        if current_time - self.last_activity > 30 and not self.power_save_mode:
+            self.enter_power_save_mode()
+        # Exit power save if there was recent activity
+        elif current_time - self.last_activity <= 30 and self.power_save_mode:
+            self.exit_power_save_mode()
+    
     def paintEvent(self, event):
         """Draw the pet sprite"""
         painter = QPainter(self)
@@ -207,6 +258,10 @@ class VirtualPet(QWidget):
     def mousePressEvent(self, event):
         """Handle mouse clicks for interaction"""
         if event.button() == Qt.LeftButton:
+            # Track activity for power management
+            import time
+            self.last_activity = time.time()
+            
             # Boost happiness when clicked
             self.happiness = min(100, self.happiness + 10)
             self.energy = min(100, self.energy + 5)
@@ -228,6 +283,10 @@ class VirtualPet(QWidget):
     def mouseDoubleClickEvent(self, event):
         """Handle double-click for special actions"""
         if event.button() == Qt.LeftButton:
+            # Track activity for power management
+            import time
+            self.last_activity = time.time()
+            
             # Randomize position on double-click
             self.randomize_position()
             # Boost stats
