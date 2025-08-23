@@ -29,7 +29,7 @@ def build_executable():
     """Build the executable using PyInstaller"""
     print("Building Virtual Pet executable...")
     
-    # PyInstaller command
+    # PyInstaller command with better compatibility
     cmd = [
         "pyinstaller",
         "--onefile",                    # Single executable file
@@ -40,6 +40,11 @@ def build_executable():
         "--hidden-import", "PyQt5.QtCore",   # Ensure PyQt5 modules are included
         "--hidden-import", "PyQt5.QtGui",
         "--hidden-import", "PyQt5.QtWidgets",
+        "--hidden-import", "PyQt5.sip",      # Additional PyQt5 dependency
+        "--collect-all", "PyQt5",            # Collect ALL PyQt5 modules
+        "--collect-all", "PyQt5.QtCore",
+        "--collect-all", "PyQt5.QtGui", 
+        "--collect-all", "PyQt5.QtWidgets",
         "--clean",                      # Clean build cache
         "main.py"
     ]
